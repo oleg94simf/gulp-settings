@@ -1,6 +1,8 @@
 let project_folder = "dist";
 let source_folder = "src";
 
+let fs = require('fs');
+
 let path = {
 	build: {
 		html: project_folder + "/",
@@ -40,7 +42,10 @@ let { src, dest } = require('gulp'),
 	webp = require("gulp-webp"),
 	webphtml = require("gulp-webp-html"),
 	webpcss = require("gulp-webpcss"),
-	svgSprite = require('gulp-svg-sprite');
+	svgSprite = require('gulp-svg-sprite'),
+	ttf2woff = require("gulp-ttf2woff"),
+	ttf2woff2 = require('gulp-ttf2woff2'),
+	fonter = require("gulp-fonter");
 
 
 function browserSync(params) {
@@ -121,7 +126,61 @@ function images() {
 		.pipe(browsersync.stream())
 }
 
+function fonts(params) {
+	src(path.src.fonts)
+		.pipe(ttf2woff())
+		.pipe(dest(path.build.fonts))
+	return src(path.src.fonts)
+		.pipe(ttf2woff2())
+		.pipe(dest(path.build.fonts))
+}
 
+gulp.task('otf2ttf', function () {
+	return gulp.src([source_folder + '/fonts/*.otf'])
+		.pipe(fonter({
+			formats: ['ttf']
+		}))
+		.pipe(dest(source_folder + '/fonts/*.otf'))
+})
+
+gulp.task('svgSprite', function () {
+	return gulp.src([source_folder + '/iconsprite/*.svg'])
+		.pipe(svgSprite({
+			mode: {
+				stack: {
+					sprite: "../icons/icons.svg",
+					example: true
+				}
+			},
+		}
+		))
+		.pipe(dest(path.build.img))
+})
+
+function fontsStyle(params) {
+
+	let file_content = fs.readFileSync(source_folder + '/scss/fonts.scss');
+	if (file_content == '') {
+		fs.writeFile(source_folder + '/scss/fonts.scss', '', cb);
+		return fs.readdir(path.build.fonts, function (err, items) {
+			if (items) {
+				let c_fontname;
+				for (var i = 0; i < items.length; i++) {
+					let fontname = items[i].split('.');
+					fontname = fontname[0];
+					if (c_fontname != fontname) {
+						fs.appendFile(source_folder + '/scss/fonts.scss', '@include font("' + fontname + '", "' + fontname + '", "400", "normal");\r\n', cb);
+					}
+					c_fontname = fontname;
+				}
+			}
+		})
+	}
+}
+
+function cb() {
+
+}
 
 function watchFiles() {
 	gulp.watch([path.watch.html], html)
@@ -136,10 +195,12 @@ function clean(param) {
 }
 
 
-let build = gulp.series(clean, gulp.parallel(js, css, html, images));
+let build = gulp.series(clean, gulp.parallel(js, css, html, images, fonts), fontsStyle);
 let watch = gulp.parallel(build, watchFiles, browserSync);
 
 
+exports.fontsStyle = fontsStyle;
+exports.fonts = fonts;
 exports.images = images;
 exports.js = js;
 exports.css = css;

@@ -1,6 +1,19 @@
+@mixin font($font_name, $file_name, $weight, $style) {
+	@font-face {
+		font-family: $font_name;
+		font-display: swap;
+		src: url("../fonts/#{$file_name}.woff") format("woff"), url("../fonts/#{$file_name}.woff2") format("woff2");
+		font-weight: #{$weight};
+		font-style: #{$style};
+	}
+}
+
+@import "fonts";
+
 body {
 	font-size: 50px;
 	display: flex;
+	color: red;
 }
 
 h2 {
@@ -15,8 +28,24 @@ p {
 		font-size: 60px;
 	}
 }
-div {
+
+.svg-logo-dims {
 	width: 500px;
 	height: 500px;
-	background: url(../img/JECKOS.jpg);
+}
+
+.svg-massager-dims {
+	width: 100px;
+	height: 100px;
+}
+
+.svg-MoreSquare-dims {
+	width: 150px;
+	height: 150px;
+	fill: red;
+	stroke: red;
+}
+.er {
+	fill: red;
+	stroke: red;
 }
